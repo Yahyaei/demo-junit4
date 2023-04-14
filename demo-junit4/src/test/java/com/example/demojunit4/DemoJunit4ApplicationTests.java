@@ -6,11 +6,13 @@ import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.mockito.internal.util.StringUtil;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.PrintStream;
 
 
+import static com.example.demojunit4.Validator.isEmailValid;
 import static com.example.demojunit4.Validator.isPhoneNumberValid;
 import static com.jayway.jsonpath.internal.path.PathCompiler.fail;
 import static java.lang.String.*;
@@ -138,7 +140,8 @@ class DemoJunit4ApplicationTests {
 
     // Validator class
     @Test
-    void checkIfNumberStartsWithZero() {
+    //testar ett korrekt telefonnummer
+    void testValidPhoneNumber() {
         boolean result = Validator.isPhoneNumberValid("0746598230");
 
         assertTrue(result);
@@ -146,6 +149,25 @@ class DemoJunit4ApplicationTests {
     }
 
     @Test
+    //testar ett telefon nummer som börjar på 0
+    void checkIfNumberStartsWithZero() {
+        boolean result = Validator.isPhoneNumberValid("0746598230");
+
+        assertTrue(result);
+
+    }
+    @Test
+    //testar skicka ett telefon nummer som inte börjar på 0
+    public void phoneNumberDoNotStartsWithZero() {
+
+        boolean result = Validator.isPhoneNumberValid("1284648596");
+
+        assertFalse(result);
+
+    }
+
+    @Test
+
     public void testInvalidPhoneNumberWithTooFewDigits() {
         //testar skriva in ett kort telefon nummer
         boolean result = Validator.isPhoneNumberValid("012");
@@ -162,11 +184,44 @@ class DemoJunit4ApplicationTests {
     @Test
     //Testa om meton retunerar True när man har space i telefonnumret
     public void testPhoneNumberWithExtraSpaces() {
+
         boolean result = Validator.isPhoneNumberWithExtraSpaces("047 012345");
 
         assertTrue(result);
 
     }
+
+    @Test
+    //Testa om meton retunerar ett felmeddelande när man har snedstreck i telefonnumret
+    public void testIfPhoneNumberIsValidWithSlashCharacters() {
+
+        boolean result = Validator.isPhoneNumberValid("074//46587089");
+
+        assertFalse(result);
+
+    }
+    @Test
+   //testar skicka in ett värde med bara mellanslag som argument
+    public void testPhoneNumber_with_emptyInput() {
+
+        boolean result = Validator.isPhoneNumberValid("  ");
+
+        assertFalse(result);
+
+    }
+    @Test
+    //testar skicka in ett långt telefon nummer
+    public void testPhoneNumber_with_LoongNumber() {
+
+        boolean result = Validator.isPhoneNumberValid("0756839768564736282");
+
+        assertFalse(result);
+
+    }
+
+
+
+
 
 
     //Testa om meton retunerar True vid en giltig Mail-adress
@@ -186,17 +241,38 @@ class DemoJunit4ApplicationTests {
 
 
     @Test
-    public void testExtractEmailParts() {
+    public void testExtractEmailPartsWithInvalidIndexSign() {
         String email = "hello@hotmail.com";
-        int domainIndexStart = email.lastIndexOf(".");
-        int indexSign = email.lastIndexOf("@");
-        String topDomainName = email.substring(domainIndexStart + 1);
-        String emailDomaine = email.substring(indexSign + 1, domainIndexStart);
-        String emailName = email.substring(0, indexSign);
+        //indexOf är en metod som man använder för att söka efter en viss teckensträng i en annan teckensträng
+        int positionSign = email.indexOf("@");
+        //lastIndexOf metoden hittar positionen för det sista
+        int domainPositionStart = email.lastIndexOf(".");
+        String topDomainName = email.substring(domainPositionStart + 1);
+        String emailDomaine = email.substring(positionSign + 1, domainPositionStart);
+        String emailName = email.substring(0, positionSign);
         String[] expected = {"hello", "hotmail", "com"};
         String[] actual = {emailName, emailDomaine, topDomainName};
         assertArrayEquals(expected, actual);
     }
+
+    //kontrollerar att det förväntade resultatet är falskt, för att eport adressen är ogiltig
+    @Test
+    public void testIsEmailValidWithInvalidSign() {
+        String email = " hello!hotmail.com";
+        boolean result = Validator.isEmailValid(email);
+        assertFalse(result);
+    }
+
+    // kontrollerar att det testfallet returnerar false falskt, för att epostadressen saknar . i formatet
+
+    //vill få ut ett felmeddelande isåfall
+    @Test
+    public void testIsEmailValidWithNoDot() {
+        String email = " hello@hotmailcom";
+        boolean result = Validator.isEmailValid(email);
+        assertFalse(result);
+    }
+
 
     @Test
     public void testNameLength() {
@@ -217,13 +293,36 @@ class DemoJunit4ApplicationTests {
     @Test
     public void testIfEmailNameToLong() {
 
-       // retunera false om emailadress är orimligt lång
-        String email = "Alexanderaxelssonhejsansson@.com";
+        // retunera false om emailadress är orimligt lång
+        String email = "Alexanderaxelssonhejsanssonnnn@.com";
 
-        assertFalse(Validator.isEmailNameSizeValid(email));
+        assertFalse(Validator.isEmailValid(email));
 
 
     }
+
+    @Test
+    public void testIfEmailValidWithEmptyEmail() {
+        // retunera false om emailadress fältet är tomt, ett felmeddelande bör visas i terminalen
+        String email = "";
+
+        assertFalse(Validator.isEmailValid(email));
+
+
+    }
+
+    @Test
+    public void testIfIsEmailValidWithNumbers(){
+        String str = "142336374757585884";
+        String result = Validator.ShouldContainsOnlyLetters(str);
+        assertEquals("Error", result);
+    }
+
+
+
+
+
+
 
 }
 
